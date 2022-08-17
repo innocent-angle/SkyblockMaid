@@ -9,6 +9,8 @@ import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Objects;
+
 import static codes.kitten.hypixelmaid.utils.GetLoggingChannel.getLoggingChannel;
 import static codes.kitten.hypixelmaid.utils.GetLoggingChannel.setLoggingChannel;
 
@@ -31,7 +33,7 @@ public class EventListener extends ListenerAdapter {
 
     @Override
     public void onMessageReactionAdd(@NotNull MessageReactionAddEvent event) {
-        if (event.getUser().isBot()) return;
+        if (Objects.requireNonNull(event.getUser()).isBot()) return;
 
         User user = event.getUser();
         String emoji = event.getReaction().getEmoji().getAsReactionCode();

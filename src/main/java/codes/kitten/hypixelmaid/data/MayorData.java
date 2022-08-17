@@ -18,14 +18,11 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class MayorData {
-    private static Boolean enabled = true;
     private final TextChannel channel = HypixelMaid.getShardManager().getTextChannelById(GetEnv.Value("MAYOR_CHANNEL"));
-    private JSONObject mayor;
-    private JSONObject election;
-    private JSONArray candidates = null;
-    private int currentYear;
-    private int previousYear;
-    DecimalFormat formatter = new DecimalFormat("#,###");
+    private static JSONObject mayor;
+    private static JSONObject election;
+    private static JSONArray candidates = null;
+    private static final DecimalFormat formatter = new DecimalFormat("#,###");
 
     public MayorData() {
         Timer timer = new Timer();
@@ -39,40 +36,12 @@ public class MayorData {
         timer.scheduleAtFixedRate(task, 0, 1000 * 60 * 20); // once per 20 minutes
     }
 
-    public TextChannel getChannel() {
-        return channel;
-    }
-
-    public JSONObject getMayor() {
-        return mayor;
-    }
-
     public void setMayor(JSONObject mayor) {
-        this.mayor = mayor;
-    }
-
-    public JSONObject getElection() {
-        return election;
+        MayorData.mayor = mayor;
     }
 
     public void setElection(JSONObject election) {
-        this.election = election;
-    }
-
-    public static Boolean getEnabled() {
-        return enabled;
-    }
-
-    public static void setEnabled(Boolean enabled) {
-        MayorData.enabled = enabled;
-    }
-
-    public int getCurrentYear() {
-        return currentYear;
-    }
-
-    public void setCurrentYear(int currentYear) {
-        this.currentYear = currentYear;
+        MayorData.election = election;
     }
 
     public void updateData() {
@@ -102,6 +71,7 @@ public class MayorData {
 
     public void updateChannel() {
         this.updateData();
+        assert channel != null;
         ClearChannel.start(channel);
         channel.sendMessageEmbeds(this.returnEmbeds()).queue();
     }
@@ -130,12 +100,10 @@ public class MayorData {
 
         if (!(election == null)) {
             if (election.has("candidates")) candidates = election.getJSONArray("candidates");
-            if (election.has("year")) currentYear = election.getInt("year");
 
             for (int j = 0; j < candidates.length(); j++) {
                 JSONObject candidate = candidates.getJSONObject(j);
                 String name = candidate.getString("name");
-                JSONArray perks = candidate.getJSONArray("perks");
                 String votes = formatter.format(candidate.getNumber("votes"));
 
                 electionEmbed.addField(name, votes, false);

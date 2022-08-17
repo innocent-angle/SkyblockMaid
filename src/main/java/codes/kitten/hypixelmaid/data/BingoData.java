@@ -11,17 +11,18 @@ import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.TextChannel;
 
 import java.awt.*;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import static java.lang.Integer.parseInt;
+
 public class BingoData {
-    private static Boolean enabled = true;
     private final TextChannel channel = HypixelMaid.getShardManager().getTextChannelById(GetEnv.Value("BINGO_CHANNEL"));
-    private long lastUpdate;
-    private int year;
-    private JSONArray goals;
+    private static JSONArray goals;
+    private static final DecimalFormat formatter = new DecimalFormat("#,###");
 
     public BingoData() {
         Timer timer = new Timer();
@@ -35,40 +36,8 @@ public class BingoData {
         timer.scheduleAtFixedRate(task, 0, 1000 * 60 * 20); // once per 20 minutes
     }
 
-    public static Boolean getEnabled() {
-        return enabled;
-    }
-
-    public static void setEnabled(Boolean enabled) {
-        BingoData.enabled = enabled;
-    }
-
-    public TextChannel getChannel() {
-        return channel;
-    }
-
-    public long getLastUpdate() {
-        return lastUpdate;
-    }
-
-    public void setLastUpdate(long lastUpdate) {
-        this.lastUpdate = lastUpdate;
-    }
-
-    public int getYear() {
-        return year;
-    }
-
-    public void setYear(int year) {
-        this.year = year;
-    }
-
-    public JSONArray getGoals() {
-        return goals;
-    }
-
     public void setGoals(JSONArray goals) {
-        this.goals = goals;
+        BingoData.goals = goals;
     }
 
     public void updateData() {
@@ -86,10 +55,6 @@ public class BingoData {
                     if (!(Boolean) value) return;
                     break;
 
-                case "lastUpdated":
-                    this.setLastUpdate((long) value);
-                    break;
-
                 case "goals":
                     this.setGoals((JSONArray) value);
             }
@@ -99,6 +64,7 @@ public class BingoData {
 
     public void updateChannel() {
         this.updateData();
+        assert channel != null;
         ClearChannel.start(channel);
         channel.sendMessageEmbeds(this.returnEmbeds()).queue();
     }
@@ -121,11 +87,10 @@ public class BingoData {
             .setColor(Color.PINK)
             .setThumbnail("https://static.wikia.nocookie.net/hypixel-skyblock/images/f/f1/Bingo.png/revision/latest?cb=20211129233732");
 
-        for (int i = 0; i < this.goals.length(); i++) {
+        for (int i = 0; i < goals.length(); i++) {
             JSONObject object = goals.getJSONObject(i);
             String name = null;
             String lore = null;
-            String requiredAmount = null;
             String progress = null;
             JSONArray tiers = null;
 
@@ -134,11 +99,7 @@ public class BingoData {
             }
 
             if (object.has("lore")) {
-                lore = object.getString("lore");
-            }
-
-            if (object.has("requiredAmount")) {
-                requiredAmount = object.getString("requiredAmount");
+                lore = object.getString("lore").replaceAll("§.", "");
             }
 
             if (object.has("tiers")) {
@@ -146,7 +107,7 @@ public class BingoData {
             }
 
             if (object.has("progress")) {
-                progress = object.getString("progress");
+                progress = formatter.format(parseInt(object.getString("progress")));
             }
 
             if (lore != null) {
@@ -156,7 +117,6 @@ public class BingoData {
 
             if (tiers != null) {
                 communityEmbed.addField(new MessageEmbed.Field(name, progress, true));
-                continue;
             }
         }
 
